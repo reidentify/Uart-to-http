@@ -1,19 +1,27 @@
 <button>Test</button>
 <button id="pauseButton">Pause Serial</button>
+<button id="offButton">off Serial</button>
+
+
 
 <script>
+	window.myReader = null
+	function stop(){
+		myReader.releaseLock();
+	}
 	// 打开串行端口
 	async function connectSerial() {
 		const port = await navigator.serial.requestPort();
 		await port.open({ baudRate: 115200 });
 
 		const reader = port.readable.getReader();
+		myReader = reader
 		const decoder = new TextDecoder("utf-8");
 		let buffer = '';
 		try {
 			while (true) {
 				if (isPaused) {
-					await new Promise(resolve => setTimeout(resolve, 100)); // 暂停时每100毫秒检查一次
+					await new Promise(resolve => setTimeout(resolve, 10)); // 暂停时每100毫秒检查一次
 					continue; // 如果暂停，继续下一次循环
 				}
 				//读取数据逻辑
@@ -24,7 +32,7 @@
 				}
 				if (value) 
 				{
-					console.log(value);
+					// console.log(hexEncode(value));
 				}
 				// 将接收到的Uint8Array数据解码为字符串
 				const text = decoder.decode(value, { stream: true });
@@ -79,5 +87,6 @@
 
 	// 添加按钮点击事件监听器，暂停或恢复串口读取
 	document.getElementById('pauseButton').addEventListener('click', pauseSerial);
+	document.getElementById('offButton').addEventListener('click', stop);
 
 </script>
