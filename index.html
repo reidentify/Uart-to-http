@@ -2,68 +2,70 @@
 <button id="pauseButton">Pause Serial</button>
 
 <script>
-    // 打开串行端口
-    async function connectSerial() 
-    {
-        const port = await navigator.serial.requestPort();
-        await port.open({ baudRate: 115200 });
+	// 打开串行端口
+	async function connectSerial() {
+		const port = await navigator.serial.requestPort();
+		await port.open({ baudRate: 115200 });
 
-        const reader = port.readable.getReader();
-        const decoder = new TextDecoder("utf-8");
-        let buffer = '';
-        try 
-        {
-            while (true) 
-            {
+		const reader = port.readable.getReader();
+		const decoder = new TextDecoder("utf-8");
+		let buffer = '';
+		try {
+			while (true) {
 				if (isPaused) {
 					await new Promise(resolve => setTimeout(resolve, 100)); // 暂停时每100毫秒检查一次
 					continue; // 如果暂停，继续下一次循环
 				}
 				//读取数据逻辑
-                const { value, done } = await reader.read();
-                if (done) 
-                {
-                    // 当读取器被取消时，跳出循环
-                    break;
-                }
-                // 将接收到的Uint8Array数据解码为字符串
-                const text = decoder.decode(value, { stream: true });
-                buffer += text;
+				const { value, done } = await reader.read();
+				if (done) {
+					// 当读取器被取消时，跳出循环
+					break;
+				}
+				if (value) 
+				{
+					console.log(value);
+				}
+				// 将接收到的Uint8Array数据解码为字符串
+				const text = decoder.decode(value, { stream: true });
+				buffer += text;
 
-                // 处理接收到的每一行数据
-                let eolIndex;
-                while ((eolIndex = buffer.indexOf('\r\n')) >= 0) 
-                {
-                    const line = buffer.slice(0, eolIndex); // 获取一行数据
-                    buffer = buffer.slice(eolIndex + 2);    // 移除这行数据，包括\r\n
-                    processLine(line);                      // 处理行数据
-                }
-            }
-        } 
-        catch (error) 
-        {
-            console.error(error);
-        } 
-        finally 
-        {
-            reader.releaseLock();
-            if (port) 
-            {
-                await port.close(); // 确保串口也被关闭
-            }
-        }
-    }
+				// 处理接收到的每一行数据
+				let eolIndex;
+				while ((eolIndex = buffer.indexOf('\r\n')) >= 0) {
+					const line = buffer.slice(0, eolIndex); // 获取一行数据
+					buffer = buffer.slice(eolIndex + 2);    // 移除这行数据，包 括\r\n
+					processLine(line, value);               // 将原始数据传递给 processLine 函数
+				}
+			}
+		}
+		catch (error) {
+			console.error(error);
+		}
+		finally {
+			reader.releaseLock();
+			if (port) {
+				await port.close(); // 确保串口也被关闭
+			}
+		}
+	}
 
-    // 处理每一行数据，添加时间戳并输出
-    function processLine(line) 
-    {
-        const now = new Date();
+	const hexEncode = (text) => {
+		return Array.from(text, (byte) =>
+			byte.toString(16).padStart(2, "0"),
+		).join(",")
+	}
+
+	// 处理每一行数据，添加时间戳并输出
+	function processLine(line, value) {
+		const now = new Date();
 		const timestamp = `[${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}.${now.getMilliseconds()}]`;
-		console.log(`${timestamp} >>${line}`);
-    }
+		const hexValue = hexEncode(value);
+		console.log(`${timestamp}${line}`, hexValue);
+	}
 
-    // 添加按钮点击事件监听器，启动连接
-    document.querySelector('button').addEventListener('click', connectSerial);
+	// 添加按钮点击事件监听器，启动连接
+	document.querySelector('button').addEventListener('click', connectSerial);
 
 
 	let isPaused = false; // 初始状态为未暂停
