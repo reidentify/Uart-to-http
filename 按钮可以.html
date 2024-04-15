@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>接收数据</title>
+</head>
+<body>
+  <button id="startButton">开始接收数据</button>
+  <button id="stopButton">停止接收数据</button>
+
+  <script>
+    let isReceiving = false;
+    let intervalId = null;
+
+    function startReceiving() {
+      if (isReceiving) return;
+      isReceiving = true;
+      intervalId = setInterval(receiveData, 10);
+    }
+
+    function stopReceiving() {
+      if (!isReceiving) return;
+      isReceiving = false;
+      clearInterval(intervalId);
+    }
+
+    function receiveData() {
+      const now = new Date();
+      const timestamp = `[${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}.${now.getMilliseconds()}]`;
+
+      // 模拟接收到的数据，这里可以替换成实际的数据接收逻辑
+      const data = generateRandomData();
+
+      // 在控制台打印带有时间戳的数据
+      console.log(`${timestamp} ${data}`);
+    }
+
+    function generateRandomData() {
+      // 生成随机的数据，模拟实际接收到的数据
+      let hexString = '';
+      for (let i = 0; i < 20; i++) {
+        hexString += Math.floor(Math.random() * 256).toString(16).padStart(2, '0').toUpperCase();
+        if (i < 19) hexString += ' ';
+      }
+      return hexString + '\r\n';
+    }
+
+    document.getElementById('startButton').addEventListener('click', startReceiving);
+    document.getElementById('stopButton').addEventListener('click', stopReceiving);
+  </script>
+</body>
+</html>

@@ -1,0 +1,241 @@
+	<button>Test</button>
+	<button id="pauseButton">Pause Serial</button>
+	<button id="offButton">off Serial</button>
+
+
+
+	<script>
+		let serialReader = null;		// 串行端口读取器标志
+		
+		// 添加按钮点击事件监听器，暂停或恢复串口读取
+		document.querySelector('button').addEventListener('click', connectSerial);
+		document.getElementById('pauseButton').addEventListener('click', pauseSerial);
+		document.getElementById('offButton').addEventListener('click', stop);
+
+		// 打开串行端口
+		async function connectSerial() {
+			const port = await navigator.serial.requestPort();
+			await port.open({ baudRate: 115200 });
+
+			const reader = port.readable.getReader();
+			serialReader = reader;
+			const decoder = new TextDecoder("utf-8");
+			
+			let buffer = '';
+
+			
+			const endDelimiter = '\r\n'; // 结束符
+			// const endDelimiter = '0D0A'; // 结束符，即回车换行的十六进制表示
+			try {
+				
+					
+				// 模拟接收数据
+				// receivedData.forEach(data => {
+				// 	onDataReceived(data);
+				// });
+
+
+				while (true) 
+				{
+					if (isPaused) {
+						await new Promise(resolve => setTimeout(resolve, 10)); // 暂停时每100毫秒检查一次
+						continue; // 如果暂停，继续下一次循环
+					}
+					//读取数据逻辑
+					const { value, done } = await reader.read();
+
+					if (done) {
+						// 当读取器被取消时，跳出循环
+						break;
+					}
+					
+
+					if (value)
+					{
+						buffer += decoder.decode(value, { stream: true }); //		将接收到的数据转换为字符串
+						processBuffer(buffer, value);
+					}
+					// 将 Uint8Array 对象解码为字符串
+					const text = new TextDecoder().decode(value);
+
+					// 将字符串转换为十六进制形式	填充为两位十六进制数	转换为大写
+					// const hexValue = text.split('').map(char => char.charCodeAt(0).toString(16).padStart(2, '0')).join('').toUpperCase();;
+
+					//判断缓冲区的数据
+					// const endIndex = buffer.indexOf(endDelimiter); // 查找结束符的位置
+					// 	console.log(endIndex);
+					// {
+					// 	if (endIndex !== -1) 
+					// 	{
+					// 		// 如果找到了结束符，则截取一行数据并进行处理
+					// 		const line = buffer.substring(0, endIndex); // 截取一行数据
+					// 		processLine(hexValue); // 处理一行数据
+
+					// 		// 从缓冲区中移除已处理的数据
+					// 		buffer = buffer.substring(endIndex + endDelimiter.length);
+					// 	}
+					// 	else
+					// 	{
+					// 		console.log('error: ' ,hexValue);
+					// 	}
+					// }
+					
+					// console.log(hexValue); // 输出十六进制形式的数据
+
+					// const endIndex = buffer.indexOf(endDelimiter); // 查找结束符的位置
+					// if (endIndex !== -1) 
+					// {
+					// 	// 如果找到了结束符，则截取一行数据并进行处理
+					// 	const line = buffer.substring(0, endIndex); // 截取一行数据
+					// 	processLine(line); // 处理一行数据
+
+					// 	// 从缓冲区中移除已处理的数据
+					// 	buffer = buffer.substring(endIndex + endDelimiter.length);
+					// } 
+					// else 
+					// {
+					// 	// 如果缓冲区中没有完整的一行数据，则退出循环
+					// 	console.log('error: ' );
+					// 	break;
+					// }
+
+
+					
+					
+					// processLine2(value);
+					// 将接收到的Uint8Array数据解码为字符串
+					// const text = decoder.decode(value, { stream: true });
+					// buffer += text;
+
+					// const lineEndIndex = buffer.indexOf(endDelimiter);
+					// if (lineEndIndex !== -1) 
+					// {
+					// 	// 截取一行数据并进行处理
+					// 	const line = buffer.substring(0, lineEndIndex);
+					// 	processLine(line);
+					// 	// processLine(value);
+
+					// 	// 从缓冲区中移除已处理的数据
+					// 	buffer = buffer.substring(lineEndIndex + endDelimiter.length);
+					// }
+					// if (buffer.length > 1000) 
+					// {
+					// 	buffer = buffer.slice(-1000); // 截断缓冲区，只保留最后1000个字符
+					// }
+					
+					// 处理接收到的每一行数据
+					// let lineEndIndex;
+					// while ((lineEndIndex = buffer.indexOf('\r\n')) >= 0) 
+					// {
+					// 	const line = buffer.slice(0, lineEndIndex); // 获取一行数据
+					// 	buffer = buffer.slice(lineEndIndex + 2);    // 移除这行数据，包 括\r\n
+					// 	processLine(line, value);               // 将原始数据传递给 processLine 函数
+					// }
+				}
+			}
+			catch (error) 
+			{
+				console.error(error);
+			}
+			finally {
+				reader.releaseLock();
+				if (port) {
+					await port.close(); // 确保串口也被关闭
+				}
+			}
+		}
+
+		const hexEncode = (text) => {
+			return Array.from(text, (byte) =>
+				byte.toString(16).padStart(2, "0"),
+			).join(",")	// 将字节转换为十六进制字符串
+		}
+
+		// 处理每一行数据，添加时间戳并输出
+		// function processLine(line, value) 
+		// {
+		// 	const now = new Date();
+		// 	const timestamp = `[${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}.${now.getMilliseconds()}]`;
+		// 	const hexValue = hexEncode(value);
+		// 	console.log(`${timestamp}${line}`, hexValue);
+		// }
+
+		// function processLine2(value) 
+		// {
+		// 	const now = new Date();
+		// 	//时间戳格式对齐到百位
+		// 	const timestamp = `[${padWithZero(now.getHours())}:${padWithZero(now.getMinutes())}:${padWithZero(now.getSeconds())}.${padMilliseconds(now.getMilliseconds())}]`;
+		// 	// const hexValue = hexEncode(value);
+		// 	console.log(`${timestamp}${value}`);
+		// }
+
+		function processLine(line) 
+		{
+			const now = new Date();
+			//时间戳格式对齐到百位
+			const timestamp = `[${padWithZero(now.getHours())}:${padWithZero(now.getMinutes())}:${padWithZero(now.getSeconds())}.${padMilliseconds(now.getMilliseconds())}]`;
+			console.log(`${timestamp}${line}`);
+		}
+
+
+		// 将数字转换为两位数
+		function padWithZero(num) {
+			return num.toString().padStart(2, '0');
+		}
+		// 将数字转换为三位数
+		function padMilliseconds(ms) {
+			return ms.toString().padStart(3, '0');
+		}
+
+
+
+		function processBuffer(buffer, value) 
+		{
+			let start = 0;
+			let end = 0;
+
+			while (end < buffer.length) {
+				const eolIndex = buffer.indexOf('\r\n', end);
+				if (eolIndex === -1) {
+					break;
+				}
+				end = eolIndex + 2;
+				const line = buffer.slice(start, end);
+				proceprocessLine(line, value);
+				start = end;
+			}
+
+			buffer = buffer.slice(start);
+	}
+
+
+
+		// 添加按钮点击事件监听器，启动连接
+		
+		
+		let isPaused = false; // 初始状态为未暂停
+		
+		// 暂停串口读取
+		function pauseSerial() {
+			isPaused = !isPaused; // 切换暂停状态
+			const pauseButton = document.getElementById('pauseButton');
+			pauseButton.textContent = isPaused ? 'Resume Serial' : 'Pause Serial';
+		}
+		
+		//关闭串口
+		function stop() 
+		{
+			if (serialReader) 
+			{
+				serialReader.cancel();
+				if (serialReader.releaseLock) 
+				{
+					serialReader.releaseLock();
+					console.log("端口关闭");
+				}
+				serialReader = null;
+			}
+		}
+		
+
+	</script>

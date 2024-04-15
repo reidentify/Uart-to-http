@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>UART数据打印</title>
+</head>
+
+<body>
+	<h1>UART数据打印</h1>
+	<div id="uartData"></div>
+
+	<script>
+		// 模拟UART数据流
+		// 这里可以替换为实际的UART数据流获取方式，例如Websocket、串口通信等
+		function simulateUARTData() {
+			setInterval(() => {
+				// 模拟生成随机的UART数据
+				const data = Math.floor(Math.random() * 256); // 生成0到255之间的随机数
+				printUARTData(data); // 将数据打印到控制台
+			}, 1000); // 每秒生成一次数据，你可以根据需要调整间隔时间
+		}
+
+		// 将接收到的UART数据打印为16进制格式
+		function printUARTData(data) {
+			const hexString = data.toString(16).toUpperCase().padStart(2, '0'); // 转换为16进制字符串
+			console.log("Received UART Data: 0x" + hexString); // 打印到控制台
+			document.getElementById('uartData').innerText = "Received UART Data: 0x" + hexString; // 在页面上显示数据
+		}
+
+		// 开始模拟UART数据流
+		simulateUARTData();
+	</script>
+</body>
+
+</html>

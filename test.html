@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>释放 UART</title>
+</head>
+
+<body>
+	<button id="releaseButton">释放串口占用</button>
+
+	<script>
+		let myReader = null;
+		let isPaused = false;
+		let port = null;
+
+		async function connectSerial() {
+			port = await navigator.serial.requestPort();
+			await port.open({ baudRate: 115200 });
+
+			const reader = port.readable.getReader();
+			myReader = reader;
+			const decoder = new TextDecoder("utf-8");
+			let buffer = '';
+
+			try {
+				while (true) {
+					if (isPaused) {
+						await new Promise(resolve => setTimeout(resolve, 10));
+						continue;
+					}
+
+					const { value, done } = await reader.read();
+
+					if (done) {
+						break;
+					}
+
+					if (value) {
+						// console.log(hexEncode(value));
+					}
+
+					const text = decoder.decode(value, { stream: true });
+					buffer += text;
+
+					let eolIndex;
+					while ((eolIndex = buffer.indexOf('\r\n')) >= 0) {
+						const line = buffer.slice(0, eolIndex);
+						buffer = buffer.slice(eolIndex + 2);
+						processLine(line, value);
+					}
+				}
+			} catch (error) {
+				console.error(error);
+			} finally {
+				if (reader) {
+					reader.cancel();
+				}
+				if (port) {
+					// await port.close();
+				}
+			}
+		}
+
+		function releaseSerial() {
+			if (port) {
+				port.close();
+				console.log("串口已释放");
+			} else {
+				console.log("串口未打开");
+			}
+		}
+
+		const hexEncode = (text) => {
+			return Array.from(text, (byte) =>
+				byte.toString(16).padStart(2, "0"),
+			).join(",");
+		}
+
+		function processLine(line, value) {
+			const now = new Date();
+			const timestamp = `[${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}.${now.getMilliseconds()}]`;
+			const hexValue = hexEncode(value);
+			console.log(`${timestamp}${line}`, hexValue);
+		}
+
+		document.addEventListener('DOMContentLoaded', function () {
+			document.getElementById('releaseButton').addEventListener('click', releaseSerial);
+		});
+	</script>
+</body>
+
+</html>

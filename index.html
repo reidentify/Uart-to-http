@@ -1,94 +1,78 @@
-<button>Test</button>
-<button id="pauseButton">Pause Serial</button>
-<button id="offButton">off Serial</button>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UART数据接收</title>
+</head>
+<body>
+    <button id="startButton">开始接收数据</button>
+    <button id="stopButton" disabled>停止接收数据</button>
+    <div id="console"></div>
 
+    <script>
+        let port;
+        let reader;
+        const consoleDiv = document.getElementById('console');
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
 
+        startButton.addEventListener('click', async () => {
+            try {
+                port = await navigator.serial.requestPort();
+                await port.open({ baudRate: 115200 });
+                reader = port.readable.getReader();
+                startButton.disabled = true;
+                stopButton.disabled = false;
+                readLoop();
+            } catch (error) {
+                console.error('无法获取串行端口权限：', error);
+                consoleDiv.innerHTML += `无法获取串行端口权限：${error}<br>`;
+            }
+        });
+		
+        stopButton.addEventListener('click', async () => 	//
+		{
+            if (reader) {
+                await reader.cancel();
+                await port.close();
+                reader = null;
+                startButton.disabled = false;
+                stopButton.disabled = true;
+            }
+        });
 
-<script>
-	window.myReader = null
-	function stop(){
-		myReader.releaseLock();
-	}
-	// 打开串行端口
-	async function connectSerial() {
-		const port = await navigator.serial.requestPort();
-		await port.open({ baudRate: 115200 });
-
-		const reader = port.readable.getReader();
-		myReader = reader
-		const decoder = new TextDecoder("utf-8");
-		let buffer = '';
-		try {
-			while (true) {
-				if (isPaused) {
-					await new Promise(resolve => setTimeout(resolve, 10)); // 暂停时每100毫秒检查一次
-					continue; // 如果暂停，继续下一次循环
-				}
-				//读取数据逻辑
-				const { value, done } = await reader.read();
-				if (done) {
-					// 当读取器被取消时，跳出循环
-					break;
-				}
-				if (value) 
-				{
-					// console.log(hexEncode(value));
-				}
-				// 将接收到的Uint8Array数据解码为字符串
-				const text = decoder.decode(value, { stream: true });
-				buffer += text;
-
-				// 处理接收到的每一行数据
-				let eolIndex;
-				while ((eolIndex = buffer.indexOf('\r\n')) >= 0) {
-					const line = buffer.slice(0, eolIndex); // 获取一行数据
-					buffer = buffer.slice(eolIndex + 2);    // 移除这行数据，包 括\r\n
-					processLine(line, value);               // 将原始数据传递给 processLine 函数
-				}
-			}
-		}
-		catch (error) {
-			console.error(error);
-		}
-		finally {
-			reader.releaseLock();
-			if (port) {
-				await port.close(); // 确保串口也被关闭
-			}
-		}
-	}
-
-	const hexEncode = (text) => {
-		return Array.from(text, (byte) =>
-			byte.toString(16).padStart(2, "0"),
-		).join(",")
-	}
-
-	// 处理每一行数据，添加时间戳并输出
-	function processLine(line, value) {
-		const now = new Date();
-		const timestamp = `[${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}.${now.getMilliseconds()}]`;
-		const hexValue = hexEncode(value);
-		console.log(`${timestamp}${line}`, hexValue);
-	}
-
-	// 添加按钮点击事件监听器，启动连接
-	document.querySelector('button').addEventListener('click', connectSerial);
-
-
-	let isPaused = false; // 初始状态为未暂停
-
-	// 暂停串口读取
-	function pauseSerial() {
-		isPaused = !isPaused; // 切换暂停状态
-		const pauseButton = document.getElementById('pauseButton');
-		pauseButton.textContent = isPaused ? 'Resume Serial' : 'Pause Serial';
-	}
-
-	// 添加按钮点击事件监听器，暂停或恢复串口读取
-	document.getElementById('pauseButton').addEventListener('click', pauseSerial);
-	document.getElementById('offButton').addEventListener('click', stop);
-
-	//test
-
-</script>
+        async function readLoop() {
+            while (true) {
+                try {
+                    const { value, done } = await reader.read();
+                    if (done) {
+                        console.log('接收结束');
+                        reader.releaseLock();
+                        break;
+                    }
+                    const decoder = new TextDecoderStream();
+                    const readableStreamClosed = value.pipeTo(decoder.writable);
+                    const decodedStream = decoder.readable;
+                    const reader = decodedStream.getReader();
+                    while (true) {
+                        const { value, done } = await reader.read();
+                        if (done) {
+                            console.log('流结束');
+                            reader.releaseLock();
+                            break;
+                        }
+                        const timestamp = new Date().toLocaleTimeString();
+                        const hexData = value.reduce((str, byte) => str + byte.toString(16).padStart(2, '0').toUpperCase() + ' ', '');
+                        const decodedData = new TextDecoder().decode(value);
+                        consoleDiv.innerHTML += `[${timestamp}] ${hexData} >> ${decodedData}<br>`;
+                    }
+                } catch (error) {
+                    console.error('读取错误：', error);
+                    consoleDiv.innerHTML += `读取错误：${error}<br>`;
+                }
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<button>Test</button>
+<button id="打开串口">Pause Serial</button>
+<button id="暂停串口">Pause Serial</button>
+<button id="关闭串口">off Serial</button>
+
+<script>
+	let serialReader = null;		// 串行端口读取器标志
+	let isPaused = false;			// 是否暂停标志
+	
+	// 绑定按钮事件
+	document.querySelector('打开串口').addEventListener('click', connectSerial);
+	document.getElementById('暂停串口').addEventListener('click', pauseSerial);
+	document.getElementById('关闭串口').addEventListener('click', stop);
+	
+	// 打开串行端口
+	async function connectSerial() 
+	{
+		//初始化串口
+		const port = await navigator.serial.requestPort();
+		await port.open({ baudRate: 115200 });
+		//读取串口数据
+		const reader = port.readable.getReader();	// 获取读取器
+		serialReader = reader;						// 保存读取器
+		const decoder = new TextDecoder("utf-8");	// 创建解码器
+		let buffer = '';							// 缓冲区
+
+		try {
+			while (true) // 循环读取数据
+			{
+				//暂停读取
+				if (isPaused) 
+				{
+					await new Promise(resolve => setTimeout(resolve, 10));
+					continue;
+				}
+				//读取数据
+				const { value, done } = await reader.read();
+
+				if (done) 
+				{
+					break;
+				}
+
+				if (value) 
+				{
+					const text = decoder.decode(value, { stream: true });
+					buffer += text;
+					processBuffer(buffer, value);
+				}
+			}
+		} 
+		catch (error) 	// 处理错误
+		{
+			console.error(error);
+		} 
+		finally {
+			if (reader) 
+			{
+				reader.releaseLock();
+			}
+			if (port) 
+			{
+				await port.close();
+			}
+		}
+	}
+	
+	//16进制编码
+	const hexEncode = (value) => {
+		return Array.from(value, (byte) =>
+			byte.toString(16).padStart(2, "0"),
+		).join(",");
+	}
+
+	//
+	function processLine(line, value) 
+	{
+		const now = new Date();
+		const timestamp = `[${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}.${now.getMilliseconds()}]`;
+		const hexValue = hexEncode(value);
+		console.log(`${timestamp} ${line}`, hexValue);
+	}
+
+	
+	function processBuffer(buffer, value) 
+	{
+		let start = 0;
+		let end = 0;
+
+		while (end < buffer.length) 
+		{
+			const eolIndex = buffer.indexOf('\r\n', end);
+			if (eolIndex === -1) 
+			{
+				break;
+			}
+			end = eolIndex + 2;
+			const line = buffer.slice(start, end);
+			processLine(line, value);
+			start = end;
+		}
+
+		buffer = buffer.slice(start);
+	}
+
+
+	//暂停串口
+	function pauseSerial() 
+	{
+		isPaused = !isPaused;
+		const pauseButton = document.getElementById('pauseButton');
+		pauseButton.textContent = isPaused ? 'Resume Serial' : 'Pause Serial';
+	}
+	
+	
+	//关闭串口
+	function stop() 
+	{
+		if (serialReader) 
+		{
+			serialReader.cancel();
+			if (serialReader.releaseLock) 
+			{
+				serialReader.releaseLock();
+				console.log("端口关闭");
+			}
+			serialReader = null;
+		}
+	}
+
+</script>

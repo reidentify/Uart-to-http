@@ -1,0 +1,101 @@
+<button>Test</button>
+<button id="pauseButton">Pause Serial</button>
+<button id="offButton">off Serial</button>
+
+
+
+<script>
+	window.myReader = null
+	
+	// 打开串行端口
+	async function connectSerial() {
+		const port = await navigator.serial.requestPort();
+		await port.open({ baudRate: 115200 });
+
+		const reader = port.readable.getReader();
+		myReader = reader
+		const decoder = new TextDecoder("utf-8");
+		let buffer = '';
+		try {
+			while (true) {
+				if (isPaused) {
+					await new Promise(resolve => setTimeout(resolve, 10)); // 暂停时每100毫秒检查一次
+					continue; // 如果暂停，继续下一次循环
+				}
+				//读取数据逻辑
+				const { value, done } = await reader.read();
+				if (done) {
+					// 当读取器被取消时，跳出循环
+					break;
+				}
+				if (value) {
+					// console.log(hexEncode(value));
+				}
+				// 将接收到的Uint8Array数据解码为字符串
+				const text = decoder.decode(value, { stream: true });
+				buffer += text;
+
+				// 处理接收到的每一行数据
+				let eolIndex;
+				while ((eolIndex = buffer.indexOf('\r\n')) >= 0) {
+					const line = buffer.slice(0, eolIndex); // 获取一行数据
+					buffer = buffer.slice(eolIndex + 2);    // 移除这行数据，包 括\r\n
+					processLine(line, value);               // 将原始数据传递给 processLine 函数
+				}
+			}
+		}
+		catch (error) {
+			console.error(error);
+		}
+		finally {
+			reader.releaseLock();
+			if (port) {
+				await port.close(); // 确保串口也被关闭
+			}
+		}
+	}
+
+	function stop() {
+		if (myReader) {
+			myReader.cancel();
+			if (myReader.releaseLock) {
+				myReader.releaseLock();
+				console.log("端口关闭");
+			}
+			myReader = null;
+		}
+	}
+	
+	const hexEncode = (text) => {
+		return Array.from(text, (byte) =>
+			byte.toString(16).padStart(2, "0"),
+		).join(",")
+	}
+
+	// 处理每一行数据，添加时间戳并输出
+	function processLine(line, value) {
+		const now = new Date();
+		const timestamp = `[${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}.${now.getMilliseconds()}]`;
+		const hexValue = hexEncode(value);
+		console.log(`${timestamp}${line}`, hexValue);
+	}
+
+	
+	let isPaused = false; // 初始状态为未暂停
+
+	// 暂停串口读取
+	function pauseSerial() {
+		isPaused = !isPaused; // 切换暂停状态
+		const pauseButton = document.getElementById('pauseButton');
+		pauseButton.textContent = isPaused ? 'Resume Serial' : 'Pause Serial';
+	}
+
+	// 添加按钮点击事件监听器，暂停或恢复串口读取
+	const separator = ' | '; // 分隔符
+	console.log(`${timestamp}${separator}${line}${separator}${hexValue}`);
+	document.getElementById('pauseButton').addEventListener('click', pauseSerial);
+	document.getElementById('offButton').addEventListener('click', stop);
+
+	//test
+
+</script>
