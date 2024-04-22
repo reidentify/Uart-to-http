@@ -1,0 +1,92 @@
+{
+    "configurations": [
+        {
+            "name": "windows-clang-x64",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "C:\\Keil_v5\\C51\\INC"
+            ],
+            "cStandard": "c89",
+            "cppStandard": "${default}",
+            "compilerArgs": [
+                ""
+            ],
+            "defines": [
+                "__C51__",
+                "__VSCODE_C51__",
+                "reentrant=",
+                "compact=",
+                "small=",
+                "large=",
+                "data=",
+                "idata=",
+                "pdata=",
+                "bdata=",
+                "xdata=",
+                "code=",
+                "bit=char",
+                "sbit=char",
+                "sfr=char",
+                "sfr16=int",
+                "sfr32=int",
+                "interrupt=",
+                "using=",
+                "_at_=",
+                "_priority_=",
+                "_task_="
+            ],
+            "intelliSenseMode": "${default}"
+        },
+        {
+            "name": "PMCU_X0",
+            "includePath": [
+                "d:\\CoryProject\\Amicro\\Amicro_2024_Project\\SY826_SMOKE_XZW_K137\\App",
+                "d:\\CoryProject\\Amicro\\Amicro_2024_Project\\SY826_SMOKE_XZW_K137\\App\\manager",
+                "d:\\CoryProject\\Amicro\\Amicro_2024_Project\\SY826_SMOKE_XZW_K137\\App\\battery",
+                "d:\\CoryProject\\Amicro\\Amicro_2024_Project\\SY826_SMOKE_XZW_K137\\App\\pwm",
+                "d:\\CoryProject\\Amicro\\Amicro_2024_Project\\SY826_SMOKE_XZW_K137\\App\\charge",
+                "d:\\CoryProject\\Amicro\\Amicro_2024_Project\\SY826_SMOKE_XZW_K137\\App\\volt",
+                "d:\\CoryProject\\Amicro\\Amicro_2024_Project\\SY826_SMOKE_XZW_K137\\App\\rload",
+                "d:\\CoryProject\\Amicro\\Amicro_2024_Project\\SY826_SMOKE_XZW_K137\\App\\util",
+                "d:\\CoryProject\\Amicro\\Amicro_2024_Project\\SY826_SMOKE_XZW_K137\\App\\key",
+                "d:\\CoryProject\\Amicro\\Amicro_2024_Project\\SY826_SMOKE_XZW_K137\\App\\led_screen",
+                "d:\\CoryProject\\Amicro\\Amicro_2024_Project\\SY826_SMOKE_XZW_K137\\Bsp\\inc",
+                "d:\\CoryProject\\Amicro\\Amicro_2024_Project\\SY826_SMOKE_XZW_K137\\stdDriver",
+                "d:\\CoryProject\\Amicro\\Amicro_2024_Project\\SY826_SMOKE_XZW_K137\\Pmcu_Lib\\inc",
+                "d:\\CoryProject\\Amicro\\Amicro_2024_Project\\SY826_SMOKE_XZW_K137\\App\\screen",
+                "D:\\keil5\\C51\\INC",
+                "d:\\CoryProject\\Amicro\\Amicro_2024_Project\\SY826_SMOKE_XZW_K137\\Bsp\\src",
+                "d:\\CoryProject\\Amicro\\Amicro_2024_Project\\SY826_SMOKE_XZW_K137\\Pmcu_Lib\\lib",
+                "d:\\CoryProject\\Amicro\\Amicro_2024_Project\\SY826_SMOKE_XZW_K137\\Startup",
+                "${default}",
+                "${workspaceFolder}/**"
+            ],
+            "defines": [
+                "__C51__",
+                "__VSCODE_C51__",
+                "reentrant=",
+                "compact=",
+                "small=",
+                "large=",
+                "data=",
+                "idata=",
+                "pdata=",
+                "bdata=",
+                "xdata=",
+                "code=",
+                "bit=char",
+                "sbit=char",
+                "sfr=char",
+                "sfr16=int",
+                "sfr32=int",
+                "interrupt=",
+                "using=",
+                "_at_=",
+                "_priority_=",
+                "_task_="
+            ],
+            "intelliSenseMode": "${default}"
+        }
+    ],
+    "version": 4
+}

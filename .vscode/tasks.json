@@ -1,0 +1,36 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "build",
+			"windows": {
+				"command": "${workspaceFolder}\\.vscode\\uv4_build.bat",
+				"args": [],
+			},
+			"presentation": {
+				"panel": "shared",
+				"clear": true,
+				"reveal": "always",
+				"echo": true,
+				"showReuseMessage": false,
+			},
+			"problemMatcher": { //keil编译问题匹配
+				"owner": "echo",
+				"fileLocation": [
+					"relative",
+					"${workspaceFolder}/keil"
+				],
+				"pattern": [
+					{ //输出报警或错误的匹配正则表达式
+						"regexp": "^(\\..+)\\((\\d+)\\): (error|warning):(.*)",
+						"file": 1, //匹配元素1为文件名称
+						"location": 2, //匹配元素2为出现问题的位置
+						"severity": 3, //匹配元素3为出现问题的等级
+						"message": 4 //匹配元素4为出现问题的说明
+					}
+				]
+			}
+		},
+	]
+}

@@ -1,0 +1,20 @@
+Build target 'PMCU_X0'
+compiling charger_usb.c...
+..\App\charge\charger_usb.c(73): warning C280: 's_sub_curr_voltage_cnt': unreferenced local variable
+linking...
+Program Size: data=208.0 xdata=135 const=243 code=12685
+creating hex file from ".\Objects\PMCU_DEMO_V01"...
+User command #2: .\auto_copy.bat
+binary data will be written to file .\Objects\\PMCU_DEMO_V01.bin
+0x3281 bytes retrieved from file of intel format
+E:
+16384
+3455
+SY826_XZW_K137_CRC[516F]_V01_20240416.bin
+.\rename
+
+d:\CoryProject\Amicro\Amicro_2024_Project\SY826_SMOKE_XZW_K137\Project>copy  .\rename\*.bin  E:\ 
+.\rename\SY826_XZW_K137_CRC[516F]_V01_20240416.bin
+已复制         1 个文件。
+".\Objects\PMCU_DEMO_V01" - 0 Error(s), 1 Warning(s).
+Build Time Elapsed:  00:00:01
